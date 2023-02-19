@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test'
 
 test('View of custom emojis in an toots author display name', async ({ page, browserName }) => {
+	test.skip(
+		true,
+		'Qwik does no longer provide a way to mock the q-data request' +
+			' so this test needs to be skipped until we either come up with a way to mock the q-data' +
+			' or the custom emojis are implemented in the backend'
+	)
+
 	// this page.route is a hack to mock the custom emojis since they haven't
 	// yet been implemented in the backend (this should be not needed and removed
 	// when those are implemented)
@@ -40,7 +47,11 @@ test('View of custom emojis in an toots author display name', async ({ page, bro
 		.locator('i.fa-globe + span')
 		.click()
 
-	const customEmojiLocator = page.getByRole('link', { name: 'George :verified: 👍', exact: true }).getByRole('img')
+	const customEmojiLocator = page
+		.getByRole('link')
+		.filter({ hasText: 'George' })
+		.getByTestId('account-display-name')
+		.getByRole('img')
 	await expect(customEmojiLocator).toBeVisible()
 	await expect(customEmojiLocator).toHaveAttribute(
 		'src',

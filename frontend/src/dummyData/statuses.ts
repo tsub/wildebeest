@@ -2,9 +2,22 @@ import type { MediaAttachment, MastodonStatus } from '~/types'
 import { generateDummyStatus } from './generateDummyStatus'
 import { ben, george, penny, rafael, zak } from './accounts'
 
-// Raw statuses taken directly from mastodon
+// Raw statuses which follow the precise structure found mastodon does
 const mastodonRawStatuses: MastodonStatus[] = [
-	generateDummyStatus("<p>Fine. I'll use Wildebeest!</p>", george),
+	generateDummyStatus(
+		`
+		<p>Fine. I'll use Wildebeest!</p>
+		<p>It does look interesting:
+			<a href="https://blog.cloudflare.com/welcome-to-wildebeest-the-fediverse-on-cloudflare/"
+				target="_blank"
+				rel="nofollow noopener noreferrer">
+					<span class="invisible">https://</span>
+					<span class="ellipsis">blog.cloudflare.com/welcome-to</span>
+					<span class="invisible">-wildebeest-the-fediverse-on-cloudflare/</span>
+			</a>
+		</p>`,
+		george
+	),
 	generateDummyStatus('We did it!', george, [
 		generateDummyMediaImage(`https:/loremflickr.com/640/480/victory?lock=${Math.round(Math.random() * 999999)}`),
 	]),
@@ -31,6 +44,8 @@ export const replies: MastodonStatus[] = [
 	generateDummyStatus('<p>Yes we did! 🎉</p>', zak, [], statuses[1].id),
 	generateDummyStatus('<p> Yes you guys did it! </p>', penny, [], statuses[1].id),
 ]
+
+export const reblogs: MastodonStatus[] = [generateDummyStatus('', george, [], null, statuses[2])]
 
 function getStandardMediaType(mediaAttachmentMastodonType: string): string {
 	switch (mediaAttachmentMastodonType) {

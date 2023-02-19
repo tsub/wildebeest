@@ -1,25 +1,22 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik'
+import { component$, Slot } from '@builder.io/qwik'
 import { MastodonStatus, StatusContext } from '~/types'
 import Status from '~/components/Status'
 import { formatDateTime } from '~/utils/dateTime'
 import { formatRoundedNumber } from '~/utils/numbers'
 import * as statusAPI from 'wildebeest/functions/api/v1/statuses/[id]'
 import * as contextAPI from 'wildebeest/functions/api/v1/statuses/[id]/context'
-import { DocumentHead, Link, loader$ } from '@builder.io/qwik-city'
-import StickyHeader from '~/components/StickyHeader/StickyHeader'
-import { Avatar } from '~/components/avatar'
+import { DocumentHead, loader$ } from '@builder.io/qwik-city'
 import { MediaGallery } from '~/components/MediaGallery.tsx'
 import { getNotFoundHtml } from '~/utils/getNotFoundHtml/getNotFoundHtml'
 import { getErrorHtml } from '~/utils/getErrorHtml/getErrorHtml'
-import styles from '../../../../utils/innerHtmlContent.scss?inline'
 import { getTextContent } from 'wildebeest/backend/src/activitypub/objects'
 import { getDocumentHead } from '~/utils/getDocumentHead'
-import { useAccountUrl } from '~/utils/useAccountUrl'
-import { getDisplayNameElement } from '~/utils/getDisplayNameElement'
+import { StatusAccountCard } from '~/components/StatusAccountCard/StatusAccountCard'
+import { HtmlContent } from '~/components/HtmlContent/HtmlContent'
 
 export const statusLoader = loader$<
-	{ DATABASE: D1Database },
-	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>
+	Promise<{ status: MastodonStatus; statusTextContent: string; context: StatusContext }>,
+	{ DATABASE: D1Database }
 >(async ({ request, html, platform, params }) => {
 	const domain = new URL(request.url).hostname
 	let statusText = ''
@@ -49,16 +46,16 @@ export const statusLoader = loader$<
 })
 
 export default component$(() => {
-	useStyles$(styles)
-
-	const loaderData = statusLoader.use().value
+	const loaderData = statusLoader().value
 
 	return (
 		<>
-			<StickyHeader withBackButton />
-			<div class="bg-wildebeest-700 p-4">
-				<AccountCard status={loaderData.status} />
-				<div class="leading-normal inner-html-content text-lg" dangerouslySetInnerHTML={loaderData.status.content} />
+			<div class="p-4">
+				<div class="mb-3">
+					<StatusAccountCard subText="acct" status={loaderData.status} />
+				</div>
+
+				<HtmlContent html={loaderData.status.content} />
 
 				<MediaGallery medias={loaderData.status.media_attachments} />
 
@@ -70,24 +67,6 @@ export default component$(() => {
 				})}
 			</div>
 		</>
-	)
-})
-
-export const AccountCard = component$<{ status: MastodonStatus }>(({ status }) => {
-	const accountUrl = useAccountUrl(status.account)
-
-	return (
-		<div class="flex">
-			<Avatar primary={status.account} secondary={null} />
-			<div class="flex flex-col">
-				<div class="p-1">
-					<Link href={accountUrl} class="no-underline">
-						{getDisplayNameElement(status.account)}
-					</Link>
-				</div>
-				<div class="p-1 text-wildebeest-400">@{status.account.acct}</div>
-			</div>
-		</div>
 	)
 })
 
@@ -132,8 +111,8 @@ export const Info = component$<{ href: string | null }>(({ href }) => {
 	)
 })
 
-export const head: DocumentHead = ({ getData }) => {
-	const { status, statusTextContent } = getData(statusLoader)
+export const head: DocumentHead = ({ resolveValue }) => {
+	const { status, statusTextContent } = resolveValue(statusLoader)
 
 	const title = `${status.account.display_name}: ${statusTextContent.substring(0, 30)}${
 		statusTextContent.length > 30 ? '…' : ''
