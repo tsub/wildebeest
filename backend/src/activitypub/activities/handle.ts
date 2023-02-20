@@ -389,34 +389,26 @@ export async function handle(
 			// move followers
 			{
 				const collection = await getMetadata(fromActor.followers)
-				collection.items = await loadItems(collection)
+				collection.items = await loadItems<string>(collection)
 
 				// TODO: eventually move to queue and move workers
 				while (collection.items.length > 0) {
 					const batch = collection.items.splice(0, 20)
-					await Promise.all(
-						batch.map(async (items) => {
-							await moveFollowers(db, localActor, items)
-							console.log(`moved ${items.length} followers`)
-						})
-					)
+					await moveFollowers(db, localActor, batch)
+					console.log(`moved ${batch.length} followers`)
 				}
 			}
 
 			// move following
 			{
 				const collection = await getMetadata(fromActor.following)
-				collection.items = await loadItems(collection)
+				collection.items = await loadItems<string>(collection)
 
 				// TODO: eventually move to queue and move workers
 				while (collection.items.length > 0) {
 					const batch = collection.items.splice(0, 20)
-					await Promise.all(
-						batch.map(async (items) => {
-							await moveFollowing(db, localActor, items)
-							console.log(`moved ${items.length} following`)
-						})
-					)
+					await moveFollowing(db, localActor, batch)
+					console.log(`moved ${batch.length} following`)
 				}
 			}
 
